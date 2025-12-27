@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mini Jira (Next.js + NextAuth + Prisma + MongoDB Atlas)
 
-## Getting Started
+A lightweight Jira-like project management app: Projects, Members (RBAC), Issues, Kanban board with drag & drop, Sprints, Comments, and an Activity/Audit log.
 
-First, run the development server:
+## Live Demo
+- Deployed URL: **<PASTE_VERCEL_URL_HERE>**
+- (Optional) Demo credentials: **<email / password>**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Auth
+- Email + password authentication (NextAuth Credentials)
+- OAuth ready (GitHub/Google) if configured
+- Protected routes (server-side access checks)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Projects & RBAC
+- Create projects with unique project key (e.g., `MJ`)
+- Project membership with roles:
+  - `ADMIN`: can add members
+  - `MEMBER`: standard access
+- Members page (list project members)
 
-## Learn More
+### Issues (Core)
+- Create, view, and manage issues
+- Issue fields:
+  - Status: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`
+  - Type: `TASK`, `BUG`, `STORY`
+  - Priority: `LOW`, `MEDIUM`, `HIGH`, `URGENT`
+  - Story points (optional)
+- Assign assignee (only project members)
 
-To learn more about Next.js, take a look at the following resources:
+### Kanban Board
+- Drag & drop issues between columns (optimistic UI + rollback on failure)
+- Client-side:
+  - Search by title
+  - Filter by priority
+  - Filter by assignee / unassigned
+  - Sort by last updated (newest/oldest)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Sprints
+- Sprint lifecycle: `PLANNED → ACTIVE → CLOSED`
+- Add/remove issues to sprint
+- Prevent modifications to CLOSED sprints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Comments
+- Add comments on issue detail page
 
-## Deploy on Vercel
+### Activity / Audit Log
+- Tracks actions like:
+  - Issue created
+  - Status changed
+  - Assignee changed
+  - Comment added
+  - Issue sprint changed
+  - Sprint status changed
+- Activity page per project: `/projects/:projectId/activity`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+- **Next.js (App Router)**
+- **NextAuth** (Credentials + OAuth-ready)
+- **Prisma ORM**
+- **MongoDB Atlas**
+- **Vitest** for unit tests
+- **GitHub Actions** CI (tests + coverage)
+
+---
+
+## Project Structure (high level)
+- `app/` → UI routes + API routes
+- `lib/` → Prisma client, auth helpers, activity logger, etc.
+- `prisma/` → Prisma schema
+
+---
+
+## Environment Variables
+
+Create `.env.local` in project root:
+
+```env
+# MongoDB Atlas
+DATABASE_URL="mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority"
+
+# NextAuth
+NEXTAUTH_SECRET="<random_32byte_hex>"
+NEXTAUTH_URL="http://localhost:3000"
+
+# (Optional) OAuth providers
+# GITHUB_CLIENT_ID=""
+# GITHUB_CLIENT_SECRET=""
+# GOOGLE_CLIENT_ID=""
+# GOOGLE_CLIENT_SECRET=""
