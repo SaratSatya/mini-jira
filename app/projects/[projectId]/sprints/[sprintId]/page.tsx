@@ -60,8 +60,14 @@ export default async function SprintDetailPage({
   };
 
   for (const i of sprintIssues) {
-    const sp = i.storyPoints ?? 0;
-    spByStatus[i.status as Status] += sp;
+    const spx=i.status==='TODO'?1:0;
+    spByStatus[i.status as Status] += spx;
+    const spy=i.status==='IN_PROGRESS'?1:0;
+    spByStatus[i.status as Status] += spy;
+    const spz=i.status==='IN_REVIEW'?1:0;
+    spByStatus[i.status as Status] += spz;
+    const spa=i.status==='DONE'?1:0;
+    spByStatus[i.status as Status] += spa;
   }
 
   const totalSp =

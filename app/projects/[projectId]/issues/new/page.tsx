@@ -49,7 +49,7 @@ export default function NewIssuePage() {
     <main className="p-6 max-w-lg mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Create Issue</h1>
-        <Link className="underline" href={projectId ? `/projects/${projectId}/issues` : "/projects"}>
+        <Link className="underline" href={projectId ? `/projects/${projectId}` : "/projects"}>
           Back
         </Link>
       </div>
