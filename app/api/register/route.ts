@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { createToken, tokenExpiry } from "@/lib/tokens";
+import { sendVerificationEmail } from "@/lib/email";
 
 const schema = z.object({
   name: z.string().min(1).max(50),
@@ -35,8 +37,30 @@ export async function POST(req: Request) {
       name,
       email: normalizedEmail,
       hashedPassword,
+      emailVerified: null, // explicit (optional)
     },
   });
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  // Create verification token + send email
+  const token = createToken();
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: normalizedEmail, // we use email as identifier
+      token,
+      expires: tokenExpiry(24),
+    },
+  });
+
+  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const verifyUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(
+    normalizedEmail
+  )}`;
+
+  await sendVerificationEmail({ to: normalizedEmail, verifyUrl });
+
+  return NextResponse.json(
+    { ok: true, message: "Account created. Please verify your email before logging in." },
+    { status: 201 }
+  );
 }
