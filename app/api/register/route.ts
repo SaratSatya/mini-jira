@@ -56,8 +56,12 @@ export async function POST(req: Request) {
   const verifyUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(
     normalizedEmail
   )}`;
-
+  try{
   await sendVerificationEmail({ to: normalizedEmail, verifyUrl });
+  }catch(e){
+    console.error("EMAIL SEND FAILED",e);
+    return NextResponse.json({error:"Failed to send verification email"},{status:500});
+  }
 
   return NextResponse.json(
     { ok: true, message: "Account created. Please verify your email before logging in." },
