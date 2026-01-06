@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
+import { Input } from "@/app/components/ui/input";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ export default function LoginPage() {
       <h1 className="text-2xl font-semibold">Login</h1>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Email"
           type="email"
@@ -37,7 +38,7 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Password"
           type="password"

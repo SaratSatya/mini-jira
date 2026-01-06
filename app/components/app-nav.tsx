@@ -32,7 +32,8 @@ export function AppNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+<div className="app-container flex items-center justify-between py-3">
+
         <Link href={status === "authenticated" ? "/dashboard" : "/"} className="font-semibold">
           Mini Jira
         </Link>

@@ -155,6 +155,7 @@ function KanbanColumn({
   // Mark column as droppable by using it as a droppable container
   // We'll do that in a simple way in IssueCardDnD using @dnd-kit/core useDroppable
   return (
+    <Card>
     <section className="border rounded p-3 min-h-[160px]" data-col={id}>
       <h2 className="font-medium">{title}</h2>
       <DroppableArea id={id}>
@@ -167,10 +168,12 @@ function KanbanColumn({
         </div>
       </DroppableArea>
     </section>
+    </Card>
   );
 }
 
 import { useDroppable } from "@dnd-kit/core";
+import { Card } from "@/app/components/ui/card";
 
 function DroppableArea({ id, children }: { id: string; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id });

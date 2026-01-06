@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
 
 export default function AddMemberForm({ projectId }: { projectId: string }) {
   const router = useRouter();
@@ -42,7 +44,7 @@ export default function AddMemberForm({ projectId }: { projectId: string }) {
     <form onSubmit={onSubmit} className="border rounded p-3 space-y-2">
       <p className="font-medium">Add member</p>
 
-      <input
+      <Input
         className="w-full border rounded p-2"
         placeholder="user@email.com"
         value={email}
@@ -59,9 +61,9 @@ export default function AddMemberForm({ projectId }: { projectId: string }) {
           <option value="ADMIN">ADMIN</option>
         </select>
 
-        <button disabled={loading} className="border rounded px-3 py-2">
+        <Button disabled={loading} className="border rounded px-3 py-2">
           {loading ? "Adding..." : "Add"}
-        </button>
+        </Button>
       </div>
 
       {err ? <p className="text-sm text-red-500">{err}</p> : null}

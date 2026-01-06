@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/app/components/ui/input";
 
 export default function NewSprintForm({ projectId }: { projectId: string }) {
   const router = useRouter();
@@ -39,11 +40,11 @@ export default function NewSprintForm({ projectId }: { projectId: string }) {
     <form onSubmit={onSubmit} className="border rounded p-3 space-y-2">
       <p className="font-medium">Create Sprint</p>
 
-      <input className="w-full border rounded p-2" placeholder="Sprint name" value={name} onChange={(e) => setName(e.target.value)} />
+      <Input className="w-full border rounded p-2" placeholder="Sprint name" value={name} onChange={(e) => setName(e.target.value)} />
 
       <div className="grid grid-cols-2 gap-2">
-        <input className="w-full border rounded p-2" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        <input className="w-full border rounded p-2" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        <Input className="w-full border rounded p-2" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        <Input className="w-full border rounded p-2" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
       </div>
 
       {err ? <p className="text-sm text-red-500">{err}</p> : null}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { Input } from "@/app/components/ui/input";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -40,14 +41,14 @@ export default function RegisterPage() {
       <h1 className="text-2xl font-semibold">Create account</h1>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Email"
           type="email"
@@ -55,7 +56,7 @@ export default function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Password (min 6 chars)"
           type="password"

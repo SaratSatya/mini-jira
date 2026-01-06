@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/app/components/ui/button";
 
 export default function AddIssueToSprint({
   sprintId,
@@ -56,9 +57,9 @@ export default function AddIssueToSprint({
             ))}
           </select>
 
-          <button className="border rounded px-3 py-2" onClick={add} disabled={loading || disabled}>
+          <Button className="border rounded px-3 py-2" onClick={add} disabled={loading || disabled}>
             {loading ? "Adding..." : "Add"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

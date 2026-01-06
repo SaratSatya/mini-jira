@@ -1,5 +1,7 @@
 "use client";
 
+import { Input } from "@/app/components/ui/input";
+
 type AssigneeOption = { id: string; label: string };
 
 export default function FilterBar({
@@ -29,7 +31,7 @@ export default function FilterBar({
 }) {
   return (
     <div className="mt-4 border rounded p-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <input
+      <Input
         className="border rounded p-2 w-full md:w-80"
         placeholder="Search by title..."
         value={query}

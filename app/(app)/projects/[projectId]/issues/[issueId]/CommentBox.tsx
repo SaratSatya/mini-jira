@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/app/components/ui/button";
 
 export default function CommentBox({
   issueId,
@@ -55,9 +56,9 @@ export default function CommentBox({
         onChange={(e) => setBody(e.target.value)}
       />
       {err ? <p className="text-sm text-red-500">{err}</p> : null}
-      <button disabled={loading} className="border rounded px-3 py-1">
+      <Button disabled={loading} className="border rounded px-3 py-1">
         {loading ? "Posting..." : "Post comment"}
-      </button>
+      </Button>
     </form>
   );
 }

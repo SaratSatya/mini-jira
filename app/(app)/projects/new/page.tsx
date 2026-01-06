@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Input } from "@/app/components/ui/input";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -44,14 +45,14 @@ export default function NewProjectPage() {
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Project name (e.g. Mini Jira)"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Project key (e.g. MJ)"
           value={key}

@@ -1,55 +1,72 @@
 @import "tailwindcss";
 
-/* Force consistent dark UI + fix native form controls (select/options) */
-:root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-
-  /* makes native controls (select dropdown, scrollbars) use dark scheme */
-  color-scheme: dark;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @layer base {
-  html,
+  :root {
+    --bg: #0b0f14;
+    --surface: #0f172a;
+    --surface-2: #111c33;
+
+    --text: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.62);
+
+    --border: rgba(255,255,255,.10);
+    --border-strong: rgba(255,255,255,.16);
+
+    --accent: #3b82f6;
+    --accent-2: #60a5fa;
+
+    --radius: 12px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+
+    --container: 1100px;
+  }
+
+  html, body { height: 100%; }
+
   body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    @apply antialiased;
+    margin: 0;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(59,130,246,.12), transparent 55%),
+      var(--bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   }
 
-  /* Consistent link style */
-  a {
-    @apply underline underline-offset-4 hover:opacity-80;
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+}
+
+@layer components {
+  .app-container { max-width: var(--container); margin: 0 auto; padding: 0 24px; }
+
+  .app-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
 
-  /* Consistent form controls everywhere (no need to restyle per page) */
-  input,
-  textarea,
-  select {
-    @apply w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-white placeholder-white/50;
-    @apply outline-none focus:border-white/60 focus:ring-2 focus:ring-white/10;
+  .app-input {
+    width: 100%;
+    color: var(--text);
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    outline: none;
   }
 
-  /* ✅ Fix dropdown menu visibility */
-  select {
-    color-scheme: dark;
-  }
-  option {
-    background: #0a0a0a;
-    color: #ededed;
+  .app-input:focus {
+    border-color: rgba(59,130,246,.6);
+    box-shadow: 0 0 0 4px rgba(59,130,246,.15);
   }
 
-  /* Consistent buttons everywhere */
-  button {
-    @apply rounded-md border border-white/30 bg-white/5 px-4 py-2 text-sm;
-    @apply hover:border-white/70 transition;
+  .app-btn {
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    cursor: pointer;
   }
 }

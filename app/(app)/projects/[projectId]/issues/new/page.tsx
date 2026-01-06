@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
 
 export default function NewIssuePage() {
   const router = useRouter();
@@ -55,7 +57,7 @@ export default function NewIssuePage() {
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Title"
           value={title}
@@ -99,7 +101,7 @@ export default function NewIssuePage() {
           </div>
         </div>
 
-        <input
+        <Input
           className="w-full border p-2 rounded"
           placeholder="Story points (optional)"
           value={storyPoints}
@@ -108,9 +110,9 @@ export default function NewIssuePage() {
 
         {err ? <p className="text-sm text-red-500">{err}</p> : null}
 
-        <button disabled={loading} className="w-full border rounded p-2">
+        <Button disabled={loading} className="w-full border rounded p-2">
           {loading ? "Creating..." : "Create"}
-        </button>
+        </Button>
       </form>
     </main>
   );
