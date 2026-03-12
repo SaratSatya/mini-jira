@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 
-
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/);
 
 const schema = z.object({
@@ -43,31 +42,37 @@ export async function PATCH(
   });
 
   if (!issue) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  // after you verify `issue` exists
+
   const current = await prisma.issue.findUnique({
-      where: { id: issueId },
-      select: { sprintId: true },
+    where: { id: issueId },
+    select: { sprintId: true },
   });
 
   const sprintId = parsed.data.sprintId;
 
-// ✅ if removing from sprint, block if current sprint is CLOSED
-  if (sprintId === null && current?.sprintId) {
-    const currentSprint = await prisma.sprint.findFirst({
-      where: { id: current.sprintId, projectId: issue.projectId },
-      select: { status: true },
-    });
-
-    if (currentSprint?.status === "CLOSED") {
-      return NextResponse.json({ error: "Cannot modify a CLOSED sprint" }, { status: 400 });
+  // ── REMOVING from sprint ──────────────────────────────────────────────────
+  if (sprintId === null) {
+    if (current?.sprintId) {
+      const currentSprint = await prisma.sprint.findFirst({
+        where: { id: current.sprintId, projectId: issue.projectId },
+        select: { status: true },
+      });
+      // Can only remove from an ACTIVE sprint
+      if (currentSprint?.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Issues can only be removed from an ACTIVE sprint" },
+          { status: 400 }
+        );
+      }
     }
   }
 
-// ✅ if adding to sprint, validate sprint exists + not CLOSED
+  // ── ADDING to sprint ──────────────────────────────────────────────────────
   if (sprintId !== null) {
     if (!objectId.safeParse(sprintId).success) {
       return NextResponse.json({ error: "Invalid sprintId" }, { status: 400 });
     }
+
     const sprint = await prisma.sprint.findFirst({
       where: { id: sprintId, projectId: issue.projectId },
       select: { status: true },
@@ -76,8 +81,13 @@ export async function PATCH(
     if (!sprint) {
       return NextResponse.json({ error: "Sprint not found for this project" }, { status: 404 });
     }
-    if (sprint.status === "CLOSED") {
-      return NextResponse.json({ error: "Cannot modify a CLOSED sprint" }, { status: 400 });
+
+    // ✅ Only ACTIVE sprints can have issues added to them
+    if (sprint.status !== "ACTIVE") {
+      return NextResponse.json(
+        { error: "Issues can only be added to an ACTIVE sprint" },
+        { status: 400 }
+      );
     }
   }
 
@@ -94,8 +104,6 @@ export async function PATCH(
     sprintId: sprintId ?? current?.sprintId ?? null,
     meta: { from: current?.sprintId ?? null, to: sprintId },
   });
-
-
 
   return NextResponse.json({ ok: true });
 }
