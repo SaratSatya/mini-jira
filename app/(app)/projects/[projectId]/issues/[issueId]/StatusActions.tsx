@@ -32,7 +32,7 @@ export default function StatusActions({
   const isAssignee = assigneeId === currentUserId;
   const isAdmin = currentUserRole === "ADMIN";
 
-  // Show "Mark as Complete" to assignee, and also to admins for IN_PROGRESS for reliability.
+  // "Mark as Complete" — shown for assignee, and also for ADMIN on IN_PROGRESS issues
   const showMarkComplete = status === "IN_PROGRESS" && (isAssignee || isAdmin);
 
   // "Mark as Done" — shown only to admin when status is IN_REVIEW
@@ -90,13 +90,7 @@ export default function StatusActions({
         <button
           onClick={() => handleStatusChange("IN_REVIEW")}
           disabled={loading}
-          onMouseEnter={() => setHoveredAction("complete")}
-          onMouseLeave={() => setHoveredAction(null)}
-          style={{
-            backgroundColor: hoveredAction === "complete" ? "#dcfce7" : "#020817",
-            color: hoveredAction === "complete" ? "#14532d" : "#f8fafc",
-          }}
-          className="border rounded px-4 py-2 font-medium disabled:opacity-50 transition-colors"
+          className="border rounded px-4 py-2 font-medium text-white bg-green-700 hover:bg-green-600 disabled:opacity-50 transition-colors"
         >
           {loading ? "Updating..." : "✅ Mark as Complete"}
         </button>
@@ -106,13 +100,7 @@ export default function StatusActions({
         <button
           onClick={() => handleStatusChange("DONE")}
           disabled={loading}
-          onMouseEnter={() => setHoveredAction("done")}
-          onMouseLeave={() => setHoveredAction(null)}
-          style={{
-            backgroundColor: hoveredAction === "done" ? "#dbeafe" : "#020817",
-            color: hoveredAction === "done" ? "#1e3a8a" : "#f8fafc",
-          }}
-          className="border rounded px-4 py-2 font-medium disabled:opacity-50 transition-colors"
+          className="border rounded px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-600 disabled:opacity-50 transition-colors"
         >
           {loading ? "Updating..." : "🏁 Mark as Done"}
         </button>
@@ -122,13 +110,7 @@ export default function StatusActions({
         <button
           onClick={handleDelete}
           disabled={loading}
-          onMouseEnter={() => setHoveredAction("delete")}
-          onMouseLeave={() => setHoveredAction(null)}
-          style={{
-            backgroundColor: hoveredAction === "delete" ? "#fee2e2" : "#020817",
-            color: hoveredAction === "delete" ? "#b91c1c" : "#ef4444",
-          }}
-          className="border rounded px-4 py-2 font-medium disabled:opacity-50 transition-colors"
+          className="border rounded px-4 py-2 font-medium text-white bg-red-700 hover:bg-red-600 disabled:opacity-50 transition-colors"
         >
           {loading ? "Deleting..." : "🗑️ Delete Issue"}
         </button>
