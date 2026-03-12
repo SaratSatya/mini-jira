@@ -88,7 +88,7 @@ export default function StatusActions({
         <button
           onClick={() => handleStatusChange("IN_REVIEW")}
           disabled={loading}
-          className="border rounded px-4 py-2 font-medium hover:bg-green-50 disabled:opacity-50"
+          className="border rounded px-4 py-2 font-medium text-white hover:bg-green-500/15 hover:text-green-200 disabled:opacity-50"
         >
           {loading ? "Updating..." : "✅ Mark as Complete"}
         </button>
@@ -98,7 +98,7 @@ export default function StatusActions({
         <button
           onClick={() => handleStatusChange("DONE")}
           disabled={loading}
-          className="border rounded px-4 py-2 font-medium hover:bg-blue-50 disabled:opacity-50"
+          className="border rounded px-4 py-2 font-medium text-white hover:bg-blue-500/15 hover:text-blue-200 disabled:opacity-50"
         >
           {loading ? "Updating..." : "🏁 Mark as Done"}
         </button>
@@ -108,7 +108,7 @@ export default function StatusActions({
         <button
           onClick={handleDelete}
           disabled={loading}
-          className="border rounded px-4 py-2 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+          className="border rounded px-4 py-2 font-medium text-red-500 hover:bg-red-500/15 hover:text-red-300 disabled:opacity-50"
         >
           {loading ? "Deleting..." : "🗑️ Delete Issue"}
         </button>
