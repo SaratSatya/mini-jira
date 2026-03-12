@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 
-
 const createIssueSchema = z.object({
   title: z.string().min(2).max(120),
   description: z.string().max(2000).optional().or(z.literal("")),
@@ -49,9 +48,9 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
-  const { projectId } = await params; // ✅ FIX
+  const { projectId } = await params;
 
-   if (!projectId || projectId === "undefined") {
+  if (!projectId || projectId === "undefined") {
     return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
   }
 
@@ -59,9 +58,7 @@ export async function GET(
   if (res) return res;
 
   const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: { projectId, userId },
-    },
+    where: { projectId_userId: { projectId, userId } },
     select: { role: true },
   });
 
@@ -88,16 +85,15 @@ export async function GET(
   return NextResponse.json({ issues });
 }
 
-/* ---------------- POST ---------------- */
-
+/* ---------------- POST (ADMIN only) ---------------- */
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
-  const { projectId } = await params; // ✅ FIX
+  const { projectId } = await params;
 
-   if (!projectId || projectId === "undefined") {
+  if (!projectId || projectId === "undefined") {
     return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
   }
 
@@ -105,14 +101,20 @@ export async function POST(
   if (res) return res;
 
   const membership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: { projectId, userId },
-    },
+    where: { projectId_userId: { projectId, userId } },
     select: { role: true },
   });
 
   if (!membership) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // ✅ Only ADMIN can create issues
+  if (membership.role !== "ADMIN") {
+    return NextResponse.json(
+      { error: "Only ADMIN can create issues" },
+      { status: 403 }
+    );
   }
 
   const body = await req.json().catch(() => null);
@@ -135,14 +137,14 @@ export async function POST(
     },
     select: { id: true },
   });
-  await logActivity({
-  projectId,
-  actorId: userId!,
-  type: "ISSUE_CREATED",
-  issueId: issue.id,
-  meta: { title },
-});
 
+  await logActivity({
+    projectId,
+    actorId: userId!,
+    type: "ISSUE_CREATED",
+    issueId: issue.id,
+    meta: { title },
+  });
 
   return NextResponse.json({ issue }, { status: 201 });
 }

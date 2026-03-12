@@ -15,12 +15,15 @@ export default function AssignAssignee({
   const router = useRouter();
   const [value, setValue] = useState(currentAssigneeId ?? "");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onChange(next: string) {
     setValue(next);
     setLoading(true);
+    setError(null);
 
-    const res = await fetch(`/api/issues/${issueId}/assignee`, {
+    // ✅ Use the main PATCH route with assigneeId (auto-sets IN_PROGRESS)
+    const res = await fetch(`/api/issues/${issueId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ assigneeId: next ? next : null }),
@@ -29,8 +32,9 @@ export default function AssignAssignee({
     setLoading(false);
 
     if (!res.ok) {
-      alert("Failed to assign");
-      router.refresh();
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Failed to assign");
+      setValue(currentAssigneeId ?? ""); // revert dropdown
       return;
     }
 
@@ -55,7 +59,8 @@ export default function AssignAssignee({
         ))}
       </select>
 
-      {loading ? <p className="text-xs opacity-70 mt-2">Saving...</p> : null}
+      {loading && <p className="text-xs opacity-70 mt-2">Saving...</p>}
+      {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
     </div>
   );
 }
