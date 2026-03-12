@@ -1,16 +1,9 @@
 "use client";
 
-import {
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
 import { useMemo, useState } from "react";
-import IssueCardDnD from "./IssueCardDnD";
+import IssueCard from "./IssueCard";
 import FilterBar from "./FilterBar";
-
+import { Card } from "@/app/components/ui/card";
 
 type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 
@@ -23,123 +16,129 @@ type Issue = {
   type: "TASK" | "BUG" | "STORY";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   storyPoints: number | null;
-  assigneeId:string | null;
-  updatedAt:string;
+  assigneeId: string | null;
+  updatedAt: string;
 };
 
-const columns: { key: Status; title: string }[] = [
-  { key: "TODO", title: "To Do" },
-  { key: "IN_PROGRESS", title: "In Progress" },
-  { key: "IN_REVIEW", title: "In Review" },
-  { key: "DONE", title: "Done" },
-];
+interface Props {
+  initialIssues: Issue[];
+  currentUserRole: "ADMIN" | "MEMBER";
+  currentUserId: string;
+}
 
-export default function KanbanBoard({ initialIssues }: { initialIssues: Issue[] }) {
-  const [query,setQuery]=useState("");
-  const [priority,setPriority]=useState<"ALL" | "LOW" | 'MEDIUM' | 'HIGH' | 'URGENT'>("ALL");
-  const [assigneeId,setAssigneeId]=useState<'ALL' | 'UNASSIGNED' | string>("ALL");
-  const [sort,setSort]=useState<"UPDATED_DESC" | "UPDATED_ASC">("UPDATED_DESC");
+export default function KanbanBoard({
+  initialIssues,
+  currentUserRole,
+  currentUserId,
+}: Props) {
+  const [query, setQuery] = useState("");
+  const [priority, setPriority] = useState<"ALL" | "LOW" | "MEDIUM" | "HIGH" | "URGENT">("ALL");
+  const [assigneeId, setAssigneeId] = useState<"ALL" | "UNASSIGNED" | string>("ALL");
+  const [sort, setSort] = useState<"UPDATED_DESC" | "UPDATED_ASC">("UPDATED_DESC");
   const [issues, setIssues] = useState<Issue[]>(initialIssues);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const isAdmin = currentUserRole === "ADMIN";
+
+  // Columns visible depend on role:
+  // MEMBER: only TODO and their own IN_PROGRESS
+  // ADMIN: all four columns
+  const columns: { key: Status; title: string }[] = isAdmin
+    ? [
+        { key: "TODO", title: "To Do" },
+        { key: "IN_PROGRESS", title: "In Progress" },
+        { key: "IN_REVIEW", title: "In Review" },
+        { key: "DONE", title: "Done" },
+      ]
+    : [
+        { key: "TODO", title: "To Do" },
+        { key: "IN_PROGRESS", title: "In Progress" },
+      ];
 
   const assignees = useMemo(() => {
-  const set = new Map<string, string>();
+    const set = new Map<string, string>();
     for (const i of issues) {
-        // we don't have name/email here; show shortened id
-        if (i.assigneeId) set.set(i.assigneeId, i.assigneeId.slice(-6));
+      if (i.assigneeId) set.set(i.assigneeId, i.assigneeId.slice(-6));
     }
-  return Array.from(set.entries()).map(([id, label]) => ({ id, label: `User...${label}` }));
-    }, [issues]);
-    const filteredIssues = useMemo(() => {
-  const q = query.trim().toLowerCase();
+    return Array.from(set.entries()).map(([id, label]) => ({
+      id,
+      label: `User...${label}`,
+    }));
+  }, [issues]);
 
-  let list = issues.filter((i) => {
-    if (q && !i.title.toLowerCase().includes(q)) return false;
-    if (priority !== "ALL" && i.priority !== priority) return false;
+  const filteredIssues = useMemo(() => {
+    const q = query.trim().toLowerCase();
 
-    if (assigneeId === "UNASSIGNED") {
-      if (i.assigneeId !== null) return false;
-    } else if (assigneeId !== "ALL") {
-      if (i.assigneeId !== assigneeId) return false;
-    }
+    let list = issues.filter((i) => {
+      // Members only see TODO (for everyone) and their own IN_PROGRESS
+      if (!isAdmin) {
+        if (i.status === "IN_REVIEW" || i.status === "DONE") return false;
+        if (i.status === "IN_PROGRESS" && i.assigneeId !== currentUserId) return false;
+      }
 
-    return true;
-  });
+      if (q && !i.title.toLowerCase().includes(q)) return false;
+      if (priority !== "ALL" && i.priority !== priority) return false;
 
-  list.sort((a, b) => {
-    const ta = new Date(a.updatedAt).getTime();
-    const tb = new Date(b.updatedAt).getTime();
-    return sort === "UPDATED_DESC" ? tb - ta : ta - tb;
-  });
+      if (assigneeId === "UNASSIGNED") {
+        if (i.assigneeId !== null) return false;
+      } else if (assigneeId !== "ALL") {
+        if (i.assigneeId !== assigneeId) return false;
+      }
 
-  return list;
-    }, [issues, query, priority, assigneeId, sort]);
-
-const grouped = useMemo(() => {
-  const map: Record<Status, Issue[]> = { TODO: [], IN_PROGRESS: [], IN_REVIEW: [], DONE: [] };
-  for (const i of filteredIssues) map[i.status].push(i);
-  return map;
-}, [filteredIssues]);
-
-
-  async function updateIssueStatus(issueId: string, next: Status) {
-    const res = await fetch(`/api/issues/${issueId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: next }),
+      return true;
     });
 
-    if (!res.ok) throw new Error("Patch failed");
-  }
+    list.sort((a, b) => {
+      const ta = new Date(a.updatedAt).getTime();
+      const tb = new Date(b.updatedAt).getTime();
+      return sort === "UPDATED_DESC" ? tb - ta : ta - tb;
+    });
 
-  async function onDragEnd(event: DragEndEvent) {
-    const activeId = event.active?.id as string | undefined;
-    const overId = event.over?.id as string | undefined;
+    return list;
+  }, [issues, query, priority, assigneeId, sort, isAdmin, currentUserId]);
 
-    // We will set droppable column ids as the status keys, so overId is a status
-    if (!activeId || !overId) return;
+  const grouped = useMemo(() => {
+    const map: Record<Status, Issue[]> = {
+      TODO: [],
+      IN_PROGRESS: [],
+      IN_REVIEW: [],
+      DONE: [],
+    };
+    for (const i of filteredIssues) map[i.status].push(i);
+    return map;
+  }, [filteredIssues]);
 
-    const nextStatus = overId as Status;
-    const current = issues.find((i) => i.id === activeId);
-    if (!current) return;
-    if (current.status === nextStatus) return;
-
-    // optimistic update
-    const prevIssues = issues;
-    setIssues((cur) =>
-      cur.map((i) => (i.id === activeId ? { ...i, status: nextStatus } : i))
-    );
-
-    try {
-      await updateIssueStatus(activeId, nextStatus);
-    } catch {
-      // rollback
-      setIssues(prevIssues);
-      alert("Failed to move issue. Reverted.");
-    }
+  function handleIssueRemoved(issueId: string) {
+    setIssues((cur) => cur.filter((i) => i.id !== issueId));
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <FilterBar
-            query={query}
-            setQuery={setQuery}
-            priority={priority}
-            setPriority={setPriority}
-            assigneeId={assigneeId}
-            setAssigneeId={setAssigneeId}
-            sort={sort}
-            setSort={setSort}
-            assignees={assignees}
-        />
+    <div>
+      <FilterBar
+        query={query}
+        setQuery={setQuery}
+        priority={priority}
+        setPriority={setPriority}
+        assigneeId={assigneeId}
+        setAssigneeId={setAssigneeId}
+        sort={sort}
+        setSort={setSort}
+        assignees={assignees}
+      />
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {columns.map((col) => (
-          <KanbanColumn key={col.key} id={col.key} title={col.title} issues={grouped[col.key]} />
+          <KanbanColumn
+            key={col.key}
+            id={col.key}
+            title={col.title}
+            issues={grouped[col.key]}
+            currentUserRole={currentUserRole}
+            currentUserId={currentUserId}
+            onIssueRemoved={handleIssueRemoved}
+          />
         ))}
       </div>
-    </DndContext>
+    </div>
   );
 }
 
@@ -147,43 +146,37 @@ function KanbanColumn({
   id,
   title,
   issues,
+  currentUserRole,
+  currentUserId,
+  onIssueRemoved,
 }: {
   id: string;
   title: string;
   issues: Issue[];
+  currentUserRole: "ADMIN" | "MEMBER";
+  currentUserId: string;
+  onIssueRemoved: (id: string) => void;
 }) {
-  // Mark column as droppable by using it as a droppable container
-  // We'll do that in a simple way in IssueCardDnD using @dnd-kit/core useDroppable
   return (
     <Card>
-    <section className="border rounded p-3 min-h-[160px]" data-col={id}>
-      <h2 className="font-medium">{title}</h2>
-      <DroppableArea id={id}>
+      <section className="border rounded p-3 min-h-[160px]" data-col={id}>
+        <h2 className="font-medium">{title}</h2>
         <div className="mt-3 space-y-3">
           {issues.length === 0 ? (
             <p className="text-sm opacity-60">No issues</p>
           ) : (
-            issues.map((issue) => <IssueCardDnD key={issue.id} issue={issue} />)
+            issues.map((issue) => (
+              <IssueCard
+                key={issue.id}
+                issue={issue}
+                currentUserRole={currentUserRole}
+                currentUserId={currentUserId}
+                onDeleted={() => onIssueRemoved(issue.id)}
+              />
+            ))
           )}
         </div>
-      </DroppableArea>
-    </section>
+      </section>
     </Card>
-  );
-}
-
-import { useDroppable } from "@dnd-kit/core";
-import { Card } from "@/app/components/ui/card";
-
-function DroppableArea({ id, children }: { id: string; children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={isOver ? "rounded p-2 border" : "rounded p-2"}
-    >
-      {children}
-    </div>
   );
 }

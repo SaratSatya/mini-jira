@@ -4,14 +4,14 @@ import { requireSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
 import CommentBox from "./CommentBox";
 import AssignAssignee from "./AssignAssignee";
-
+import StatusActions from "./StatusActions";
 
 export default async function IssueDetailPage({
   params,
 }: {
-  params: Promise<{ projectId: string; issueId: string }>; // ✅ params is a Promise
+  params: Promise<{ projectId: string; issueId: string }>;
 }) {
-  const { projectId, issueId } = await params; // ✅ unwrap once
+  const { projectId, issueId } = await params;
 
   const session = await requireSession();
   // @ts-expect-error session user extended
@@ -20,7 +20,7 @@ export default async function IssueDetailPage({
   const issue = await prisma.issue.findFirst({
     where: {
       id: issueId,
-      projectId: projectId,
+      projectId,
       project: { members: { some: { userId } } },
     },
     select: {
@@ -34,6 +34,7 @@ export default async function IssueDetailPage({
       storyPoints: true,
       createdAt: true,
       updatedAt: true,
+      assigneeId: true,
       reporter: { select: { name: true, email: true } },
       comments: {
         orderBy: { createdAt: "desc" },
@@ -45,11 +46,19 @@ export default async function IssueDetailPage({
         },
       },
       assignee: { select: { id: true, name: true, email: true } },
-
     },
   });
 
   if (!issue) redirect(`/projects/${projectId}/issues`);
+
+  // Get current user's role in this project
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId } },
+    select: { role: true },
+  });
+
+  const currentUserRole = membership?.role ?? "MEMBER";
+
   const memberships = await prisma.projectMember.findMany({
     where: { projectId: issue.projectId },
     select: { userId: true },
@@ -65,8 +74,6 @@ export default async function IssueDetailPage({
     name: u.name,
     email: u.email,
   }));
-
-
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
@@ -85,24 +92,38 @@ export default async function IssueDetailPage({
       {issue.description ? (
         <div className="mt-4 border rounded p-3">
           <p className="font-medium">Description</p>
-          <p className="mt-2 text-sm opacity-90 whitespace-pre-wrap">{issue.description}</p>
+          <p className="mt-2 text-sm opacity-90 whitespace-pre-wrap">
+            {issue.description}
+          </p>
         </div>
       ) : null}
-      <div className="mt-6">
-        <AssignAssignee
-          issueId={issue.id}
-          currentAssigneeId={issue.assignee?.id ?? null}
-          members={members}
-        />
-      </div>
+
+      {/* Assignee — only rendered for ADMIN */}
+      {currentUserRole === "ADMIN" && (
+        <div className="mt-6">
+          <AssignAssignee
+            issueId={issue.id}
+            currentAssigneeId={issue.assignee?.id ?? null}
+            members={members}
+          />
+        </div>
+      )}
+
+      {/* Status action buttons — role-conditional */}
+      <StatusActions
+        issueId={issue.id}
+        projectId={issue.projectId}
+        status={issue.status}
+        currentUserRole={currentUserRole}
+        currentUserId={userId}
+        assigneeId={issue.assigneeId}
+      />
 
       <div className="mt-6">
         <p className="font-medium">Comments</p>
-
         <div className="mt-3">
           <CommentBox issueId={issue.id} projectId={issue.projectId} />
         </div>
-
         <div className="mt-4 space-y-3">
           {issue.comments.length === 0 ? (
             <p className="text-sm opacity-70">No comments yet.</p>
