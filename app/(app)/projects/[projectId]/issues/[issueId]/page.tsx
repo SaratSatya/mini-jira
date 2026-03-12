@@ -6,12 +6,17 @@ import CommentBox from "./CommentBox";
 import AssignAssignee from "./AssignAssignee";
 import StatusActions from "./StatusActions";
 
+const COMMENTS_PER_PAGE = 10;
+
 export default async function IssueDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string; issueId: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { projectId, issueId } = await params;
+  const { page } = await searchParams;
 
   const session = await requireSession();
   // @ts-expect-error session user extended
@@ -32,20 +37,8 @@ export default async function IssueDetailPage({
       type: true,
       priority: true,
       storyPoints: true,
-      createdAt: true,
-      updatedAt: true,
       assigneeId: true,
-      reporter: { select: { name: true, email: true } },
-      comments: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          body: true,
-          createdAt: true,
-          author: { select: { name: true, email: true } },
-        },
-      },
-      assignee: { select: { id: true, name: true, email: true } },
+      assignee: { select: { id: true } },
     },
   });
 
@@ -75,8 +68,30 @@ export default async function IssueDetailPage({
     email: u.email,
   }));
 
+  const commentPage = Math.max(Number.parseInt(page ?? "1", 10) || 1, 1);
+
+  const totalComments = await prisma.comment.count({
+    where: { issueId: issue.id },
+  });
+
+  const totalPages = Math.max(1, Math.ceil(totalComments / COMMENTS_PER_PAGE));
+  const currentPage = Math.min(commentPage, totalPages);
+
+  const comments = await prisma.comment.findMany({
+    where: { issueId: issue.id },
+    orderBy: { createdAt: "desc" },
+    skip: (currentPage - 1) * COMMENTS_PER_PAGE,
+    take: COMMENTS_PER_PAGE,
+    select: {
+      id: true,
+      body: true,
+      createdAt: true,
+      author: { select: { name: true, email: true } },
+    },
+  });
+
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="p-6 max-w-3xl mx-auto pb-16">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{issue.title}</h1>
         <Link className="underline" href={`/projects/${projectId}/issues`}>
@@ -92,13 +107,10 @@ export default async function IssueDetailPage({
       {issue.description ? (
         <div className="mt-4 border rounded p-3">
           <p className="font-medium">Description</p>
-          <p className="mt-2 text-sm opacity-90 whitespace-pre-wrap">
-            {issue.description}
-          </p>
+          <p className="mt-2 text-sm opacity-90 whitespace-pre-wrap">{issue.description}</p>
         </div>
       ) : null}
 
-      {/* Assignee — only rendered for ADMIN */}
       {currentUserRole === "ADMIN" && (
         <div className="mt-6">
           <AssignAssignee
@@ -109,7 +121,6 @@ export default async function IssueDetailPage({
         </div>
       )}
 
-      {/* Status action buttons — role-conditional */}
       <StatusActions
         issueId={issue.id}
         projectId={issue.projectId}
@@ -124,21 +135,48 @@ export default async function IssueDetailPage({
         <div className="mt-3">
           <CommentBox issueId={issue.id} projectId={issue.projectId} />
         </div>
+
         <div className="mt-4 space-y-3">
-          {issue.comments.length === 0 ? (
+          {comments.length === 0 ? (
             <p className="text-sm opacity-70">No comments yet.</p>
           ) : (
-            issue.comments.map((c) => (
+            comments.map((c) => (
               <div key={c.id} className="border rounded p-3">
                 <p className="text-sm opacity-70">
-                  {c.author.name ?? c.author.email} •{" "}
-                  {new Date(c.createdAt).toLocaleString()}
+                  {c.author.name ?? c.author.email} • {new Date(c.createdAt).toLocaleString()}
                 </p>
                 <p className="mt-2 whitespace-pre-wrap">{c.body}</p>
               </div>
             ))
           )}
         </div>
+
+        {totalComments > COMMENTS_PER_PAGE ? (
+          <div className="mt-4 flex items-center justify-between text-sm">
+            <span className="opacity-70">
+              Showing {(currentPage - 1) * COMMENTS_PER_PAGE + 1}-
+              {Math.min(currentPage * COMMENTS_PER_PAGE, totalComments)} of {totalComments}
+            </span>
+            <div className="flex gap-2">
+              {currentPage > 1 ? (
+                <Link
+                  className="border rounded px-3 py-1"
+                  href={`/projects/${projectId}/issues/${issueId}?page=${currentPage - 1}`}
+                >
+                  Previous
+                </Link>
+              ) : null}
+              {currentPage < totalPages ? (
+                <Link
+                  className="border rounded px-3 py-1"
+                  href={`/projects/${projectId}/issues/${issueId}?page=${currentPage + 1}`}
+                >
+                  Next
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   );
