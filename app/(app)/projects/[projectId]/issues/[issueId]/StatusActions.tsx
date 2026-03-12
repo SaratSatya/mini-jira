@@ -26,12 +26,11 @@ export default function StatusActions({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isAssignedMember =
-    currentUserRole === "MEMBER" && assigneeId === currentUserId;
+  const isAssignee = assigneeId === currentUserId;
   const isAdmin = currentUserRole === "ADMIN";
 
-  // "Mark as Complete" — shown only to the assigned member when status is IN_PROGRESS
-  const showMarkComplete = isAssignedMember && status === "IN_PROGRESS";
+  // "Mark as Complete" — shown for assignee, and also for ADMIN on IN_PROGRESS issues
+  const showMarkComplete = status === "IN_PROGRESS" && (isAssignee || isAdmin);
 
   // "Mark as Done" — shown only to admin when status is IN_REVIEW
   const showMarkDone = isAdmin && status === "IN_REVIEW";
@@ -88,7 +87,7 @@ export default function StatusActions({
         <button
           onClick={() => handleStatusChange("IN_REVIEW")}
           disabled={loading}
-          className="border rounded px-4 py-2 font-medium hover:bg-green-50 disabled:opacity-50"
+          className="border rounded px-4 py-2 font-medium text-white bg-green-700 hover:bg-green-600 disabled:opacity-50 transition-colors"
         >
           {loading ? "Updating..." : "✅ Mark as Complete"}
         </button>
@@ -98,7 +97,7 @@ export default function StatusActions({
         <button
           onClick={() => handleStatusChange("DONE")}
           disabled={loading}
-          className="border rounded px-4 py-2 font-medium hover:bg-blue-50 disabled:opacity-50"
+          className="border rounded px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-600 disabled:opacity-50 transition-colors"
         >
           {loading ? "Updating..." : "🏁 Mark as Done"}
         </button>
@@ -108,7 +107,7 @@ export default function StatusActions({
         <button
           onClick={handleDelete}
           disabled={loading}
-          className="border rounded px-4 py-2 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+          className="border rounded px-4 py-2 font-medium text-white bg-red-700 hover:bg-red-600 disabled:opacity-50 transition-colors"
         >
           {loading ? "Deleting..." : "🗑️ Delete Issue"}
         </button>

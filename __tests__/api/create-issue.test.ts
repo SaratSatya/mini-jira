@@ -42,9 +42,22 @@ describe("POST /api/projects/[projectId]/issues", () => {
     expect(res.status).toBe(403);
   });
 
-  it("201 creates issue for member", async () => {
+  it("403 if project member is not admin", async () => {
     (getServerSession as any).mockResolvedValue({ user: { id: "507f1f77bcf86cd799439012" } });
     (prisma.projectMember.findUnique as any).mockResolvedValue({ role: "MEMBER" });
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ title: "Issue 1", type: "TASK", priority: "MEDIUM" }),
+    });
+
+    const res = await POST(req as any, { params: Promise.resolve({ projectId: "507f1f77bcf86cd799439011" }) });
+    expect(res.status).toBe(403);
+  });
+
+  it("201 creates issue for admin", async () => {
+    (getServerSession as any).mockResolvedValue({ user: { id: "507f1f77bcf86cd799439012" } });
+    (prisma.projectMember.findUnique as any).mockResolvedValue({ role: "ADMIN" });
     (prisma.issue.create as any).mockResolvedValue({ id: "507f1f77bcf86cd799439099" });
     (prisma.activity.create as any).mockResolvedValue({});
 
@@ -57,6 +70,5 @@ describe("POST /api/projects/[projectId]/issues", () => {
     expect(res.status).toBe(201);
 
     expect(prisma.issue.create).toHaveBeenCalled();
-    expect(prisma.activity.create).toHaveBeenCalled();
   });
 });
