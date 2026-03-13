@@ -39,7 +39,7 @@ export default function AddIssueToSprint({
   }
 
   return (
-    <div className="border rounded p-3">
+    <div className="app-card p-4">
       <p className="font-medium">Add issue to sprint</p>
 
       {!isAdmin ? (
@@ -49,7 +49,7 @@ export default function AddIssueToSprint({
       ) : (
         <div className="flex gap-2 mt-2">
           <select
-            className="border rounded p-2 flex-1"
+            className="app-select flex-1"
             value={issueId}
             onChange={(e) => setIssueId(e.target.value)}
             disabled={loading || disabled}
@@ -61,7 +61,7 @@ export default function AddIssueToSprint({
             ))}
           </select>
 
-          <Button className="border rounded px-3 py-2" onClick={add} disabled={loading || disabled}>
+          <Button variant="primary" onClick={add} disabled={loading || disabled}>
             {loading ? "Adding..." : "Add"}
           </Button>
         </div>

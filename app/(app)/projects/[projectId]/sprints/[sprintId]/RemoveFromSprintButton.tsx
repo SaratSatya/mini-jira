@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
 
 export default function RemoveFromSprintButton({
   issueId,
@@ -33,6 +34,6 @@ export default function RemoveFromSprintButton({
   return (
     <button className="border rounded px-3 py-1 text-sm disabled:opacity-50" onClick={remove} disabled={loading || disabled}>
       {loading ? "Removing..." : "Remove"}
-    </button>
+    </Button>
   );
 }

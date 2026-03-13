@@ -30,7 +30,7 @@ export default function FilterBar({
   assignees: AssigneeOption[];
 }) {
   return (
-    <div className="mt-4 border rounded p-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="mt-4 app-card p-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <Input
         className="border rounded p-2 w-full md:w-80"
         placeholder="Search by title..."
@@ -40,9 +40,9 @@ export default function FilterBar({
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <select
-          className="border rounded p-2"
+          className="app-select"
           value={priority}
-          onChange={(e) => setPriority(e.target.value as any)}
+          onChange={(e) => setPriority(e.target.value as "ALL" | "LOW" | "MEDIUM" | "HIGH" | "URGENT")}
         >
           <option value="ALL">All priorities</option>
           <option value="LOW">LOW</option>
@@ -52,9 +52,9 @@ export default function FilterBar({
         </select>
 
         <select
-          className="border rounded p-2"
+          className="app-select"
           value={assigneeId}
-          onChange={(e) => setAssigneeId(e.target.value as any)}
+          onChange={(e) => setAssigneeId(e.target.value as "ALL" | "UNASSIGNED" | string)}
         >
           <option value="ALL">All assignees</option>
           <option value="UNASSIGNED">Unassigned</option>
@@ -66,9 +66,9 @@ export default function FilterBar({
         </select>
 
         <select
-          className="border rounded p-2"
+          className="app-select"
           value={sort}
-          onChange={(e) => setSort(e.target.value as any)}
+          onChange={(e) => setSort(e.target.value as "UPDATED_DESC" | "UPDATED_ASC")}
         >
           <option value="UPDATED_DESC">Updated: Newest</option>
           <option value="UPDATED_ASC">Updated: Oldest</option>
