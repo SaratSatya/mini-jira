@@ -53,7 +53,10 @@ export default async function IssueDetailPage({
   const currentUserRole = membership?.role ?? "MEMBER";
 
   const memberships = await prisma.projectMember.findMany({
-    where: { projectId: issue.projectId },
+    where: {
+      projectId: issue.projectId,
+      role: "MEMBER",
+    },
     select: { userId: true },
   });
 

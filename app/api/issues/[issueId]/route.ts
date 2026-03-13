@@ -76,6 +76,32 @@ export async function PATCH(
       );
     }
 
+    if (assigneeId !== null) {
+      const assigneeMembership = await prisma.projectMember.findUnique({
+        where: {
+          projectId_userId: {
+            projectId: issue.projectId,
+            userId: assigneeId,
+          },
+        },
+        select: { role: true },
+      });
+
+      if (!assigneeMembership) {
+        return NextResponse.json(
+          { error: "Assignee must be a project member" },
+          { status: 400 }
+        );
+      }
+
+      if (assigneeMembership.role !== "MEMBER") {
+        return NextResponse.json(
+          { error: "Issues can only be assigned to MEMBER users" },
+          { status: 400 }
+        );
+      }
+    }
+
     // When assigning → auto-move to IN_PROGRESS
     // When unassigning (null) → move back to TODO
     const newStatus = assigneeId !== null ? "IN_PROGRESS" : "TODO";
