@@ -52,24 +52,31 @@ export default async function IssueDetailPage({
 
   const currentUserRole = membership?.role ?? "MEMBER";
 
-  const memberships = await prisma.projectMember.findMany({
-    where: {
-      projectId: issue.projectId,
-      role: "MEMBER",
-    },
-    select: { userId: true },
-  });
-
-  const users = await prisma.user.findMany({
-    where: { id: { in: memberships.map((m) => m.userId) } },
-    select: { id: true, name: true, email: true },
-  });
-
-  const members = users.map((u) => ({
-    userId: u.id,
-    name: u.name,
-    email: u.email,
-  }));
+  const members =
+    currentUserRole === "ADMIN"
+      ? (
+          await prisma.user.findMany({
+            where: {
+              id: {
+                in: (
+                  await prisma.projectMember.findMany({
+                    where: {
+                      projectId: issue.projectId,
+                      role: "MEMBER",
+                    },
+                    select: { userId: true },
+                  })
+                ).map((m) => m.userId),
+              },
+            },
+            select: { id: true, name: true, email: true },
+          })
+        ).map((u) => ({
+          userId: u.id,
+          name: u.name,
+          email: u.email,
+        }))
+      : [];
 
   const commentPage = Math.max(Number.parseInt(page ?? "1", 10) || 1, 1);
 

@@ -109,7 +109,7 @@ export default async function SprintDetailPage({
           </div>
         </div>
 
-        <AddIssueToSprint sprintId={sprint.id} backlogIssues={backlogIssues} disabled={sprint.status !== 'ACTIVE'} />
+        <AddIssueToSprint sprintId={sprint.id} backlogIssues={backlogIssues} disabled={sprint.status !== 'ACTIVE' || membership.role !== 'ADMIN'} isAdmin={membership.role === 'ADMIN'} />
       </div>
 
       <div className="mt-6 border rounded p-3">
@@ -133,7 +133,9 @@ export default async function SprintDetailPage({
                   <Link className="underline text-sm" href={`/projects/${projectId}/issues/${i.id}`}>
                     Open
                   </Link>
-                  <RemoveFromSprintButton issueId={i.id} disabled={sprint.status !== 'ACTIVE'} />
+                  {membership.role === 'ADMIN' ? (
+                    <RemoveFromSprintButton issueId={i.id} disabled={sprint.status !== 'ACTIVE'} />
+                  ) : null}
                 </div>
               </div>
             ))
