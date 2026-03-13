@@ -5,6 +5,8 @@ import { useState } from "react";
 
 type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 
+type HoveredAction = "complete" | "done" | "delete" | null;
+
 interface Props {
   issueId: string;
   projectId: string;
@@ -25,13 +27,13 @@ export default function StatusActions({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredAction, setHoveredAction] = useState<HoveredAction>(null);
 
   const isAssignee = assigneeId === currentUserId;
   const isAdmin = currentUserRole === "ADMIN";
 
-  // "Mark as Complete" — shown only to assigned MEMBER users
-  const showMarkComplete =
-    currentUserRole === "MEMBER" && status === "IN_PROGRESS" && isAssignee;
+  // "Mark as Complete" — shown for assignee, and also for ADMIN on IN_PROGRESS issues
+  const showMarkComplete = status === "IN_PROGRESS" && (isAssignee || isAdmin);
 
   // "Mark as Done" — shown only to admin when status is IN_REVIEW
   const showMarkDone = isAdmin && status === "IN_REVIEW";

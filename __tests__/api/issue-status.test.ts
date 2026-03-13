@@ -86,19 +86,6 @@ describe("PATCH /api/issues/[issueId]", () => {
       where: { id: "507f1f77bcf86cd799439011" },
       data: { status: "IN_REVIEW" },
     });
-  });
-
-  it("rejects assigning an issue to an admin", async () => {
-    const adminUserId = "507f1f77bcf86cd799439012";
-    const targetAdminId = "507f1f77bcf86cd799439099";
-
-    (getServerSession as any).mockResolvedValue({ user: { id: adminUserId } });
-    (prisma.issue.findFirst as any).mockResolvedValue({
-      id: "507f1f77bcf86cd799439011",
-      projectId: "507f1f77bcf86cd799439001",
-      status: "TODO",
-      assigneeId: null,
-    });
     (prisma.projectMember.findUnique as any)
       .mockResolvedValueOnce({ role: "ADMIN" })
       .mockResolvedValueOnce({ role: "ADMIN" });
@@ -137,6 +124,34 @@ describe("PATCH /api/issues/[issueId]", () => {
     });
 
     expect(res.status).toBe(403);
+    expect(prisma.issue.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects assigning an issue to an admin", async () => {
+    const adminUserId = "507f1f77bcf86cd799439012";
+    const targetAdminId = "507f1f77bcf86cd799439099";
+
+    (getServerSession as any).mockResolvedValue({ user: { id: adminUserId } });
+    (prisma.issue.findFirst as any).mockResolvedValue({
+      id: "507f1f77bcf86cd799439011",
+      projectId: "507f1f77bcf86cd799439001",
+      status: "TODO",
+      assigneeId: null,
+    });
+    (prisma.projectMember.findUnique as any)
+      .mockResolvedValueOnce({ role: "ADMIN" })
+      .mockResolvedValueOnce({ role: "ADMIN" });
+
+    const req = new Request("http://localhost/api/issues/x", {
+      method: "PATCH",
+      body: JSON.stringify({ assigneeId: targetAdminId }),
+    });
+
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }),
+    });
+
+    expect(res.status).toBe(400);
     expect(prisma.issue.update).not.toHaveBeenCalled();
   });
 });

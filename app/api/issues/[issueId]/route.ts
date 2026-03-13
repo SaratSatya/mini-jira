@@ -148,12 +148,6 @@ export async function PATCH(
           { status: 403 }
         );
       }
-      if (membership.role !== "MEMBER") {
-        return NextResponse.json(
-          { error: "Only assigned MEMBER users can mark issues as IN_REVIEW" },
-          { status: 403 }
-        );
-      }
     }
 
     // MEMBER can only move their own assigned issue -> IN_REVIEW
