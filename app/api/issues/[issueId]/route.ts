@@ -76,6 +76,32 @@ export async function PATCH(
       );
     }
 
+    if (assigneeId !== null) {
+      const assigneeMembership = await prisma.projectMember.findUnique({
+        where: {
+          projectId_userId: {
+            projectId: issue.projectId,
+            userId: assigneeId,
+          },
+        },
+        select: { role: true },
+      });
+
+      if (!assigneeMembership) {
+        return NextResponse.json(
+          { error: "Assignee must be a project member" },
+          { status: 400 }
+        );
+      }
+
+      if (assigneeMembership.role !== "MEMBER") {
+        return NextResponse.json(
+          { error: "Issues can only be assigned to MEMBER users" },
+          { status: 400 }
+        );
+      }
+    }
+
     // When assigning → auto-move to IN_PROGRESS
     // When unassigning (null) → move back to TODO
     const newStatus = assigneeId !== null ? "IN_PROGRESS" : "TODO";
@@ -108,7 +134,29 @@ export async function PATCH(
 
   // ── Status change: role-gated ─────────────────────────────────────────────
   if (status !== undefined) {
-    // MEMBER can only move their own assigned issue ��� IN_REVIEW
+    // IN_PROGRESS -> IN_REVIEW can only be done by the current assignee
+    if (status === "IN_REVIEW") {
+      if (issue.status !== "IN_PROGRESS") {
+        return NextResponse.json(
+          { error: "Issue must be IN_PROGRESS before moving to IN_REVIEW" },
+          { status: 403 }
+        );
+      }
+      if (issue.assigneeId !== userId) {
+        return NextResponse.json(
+          { error: "Only the assigned user can mark this issue as IN_REVIEW" },
+          { status: 403 }
+        );
+      }
+      if (membership.role !== "MEMBER") {
+        return NextResponse.json(
+          { error: "Only assigned MEMBER users can mark issues as IN_REVIEW" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // MEMBER can only move their own assigned issue -> IN_REVIEW
     if (!isAdmin) {
       if (issue.assigneeId !== userId) {
         return NextResponse.json(
@@ -124,7 +172,7 @@ export async function PATCH(
       }
     }
 
-    // ADMIN can only move IN_REVIEW → DONE
+    // ADMIN can only move IN_REVIEW -> DONE
     if (isAdmin && status === "DONE" && issue.status !== "IN_REVIEW") {
       return NextResponse.json(
         { error: "Admin can only mark IN_REVIEW issues as DONE" },

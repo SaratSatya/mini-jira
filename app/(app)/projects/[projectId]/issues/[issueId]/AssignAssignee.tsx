@@ -46,14 +46,14 @@ export default function AssignAssignee({
       <p className="font-medium">Assignee</p>
 
       <select
-        className="border rounded p-2 mt-2 w-full"
+        className="border rounded p-2 mt-2 w-full bg-slate-950 text-slate-100"
         value={value}
         disabled={loading}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="">Unassigned</option>
+        <option className="bg-white text-black" value="">Unassigned</option>
         {members.map((m) => (
-          <option key={m.userId} value={m.userId}>
+          <option className="bg-white text-black" key={m.userId} value={m.userId}>
             {m.name ?? m.email ?? m.userId}
           </option>
         ))}
