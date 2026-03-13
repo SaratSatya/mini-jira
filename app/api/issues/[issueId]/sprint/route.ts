@@ -61,6 +61,13 @@ export async function PATCH(
 
   // ── REMOVING from sprint ──────────────────────────────────────────────────
   if (sprintId === null) {
+    if (membership.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Only ADMIN can remove issues from a sprint" },
+        { status: 403 }
+      );
+    }
+
     if (current?.sprintId) {
       const currentSprint = await prisma.sprint.findFirst({
         where: { id: current.sprintId, projectId: issue.projectId },

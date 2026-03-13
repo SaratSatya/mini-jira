@@ -133,7 +133,9 @@ export default async function SprintDetailPage({
                   <Link className="underline text-sm" href={`/projects/${projectId}/issues/${i.id}`}>
                     Open
                   </Link>
-                  <RemoveFromSprintButton issueId={i.id} disabled={sprint.status !== 'ACTIVE'} />
+                  {membership.role === 'ADMIN' ? (
+                    <RemoveFromSprintButton issueId={i.id} disabled={sprint.status !== 'ACTIVE'} />
+                  ) : null}
                 </div>
               </div>
             ))
