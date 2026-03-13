@@ -30,7 +30,10 @@ export default function StatusActions({
   const isAssignee = assigneeId === currentUserId;
   const isAdmin = currentUserRole === "ADMIN";
 
+  // "Mark as Complete" — shown only for the assigned member on IN_PROGRESS issues
   const showMarkComplete = status === "IN_PROGRESS" && isAssignee && !isAdmin;
+
+  // "Mark as Done" — shown only to admin when status is IN_REVIEW
   const showMarkDone = isAdmin && status === "IN_REVIEW";
   const showDelete = isAdmin && status === "DONE";
 
