@@ -86,6 +86,45 @@ describe("PATCH /api/issues/[issueId]", () => {
       where: { id: "507f1f77bcf86cd799439011" },
       data: { status: "IN_REVIEW" },
     });
+    (prisma.projectMember.findUnique as any)
+      .mockResolvedValueOnce({ role: "ADMIN" })
+      .mockResolvedValueOnce({ role: "ADMIN" });
+
+    const req = new Request("http://localhost/api/issues/x", {
+      method: "PATCH",
+      body: JSON.stringify({ assigneeId: targetAdminId }),
+    });
+
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(prisma.issue.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects admin from marking IN_PROGRESS as IN_REVIEW even when assigned", async () => {
+    const adminUserId = "507f1f77bcf86cd799439012";
+    (getServerSession as any).mockResolvedValue({ user: { id: adminUserId } });
+    (prisma.issue.findFirst as any).mockResolvedValue({
+      id: "507f1f77bcf86cd799439011",
+      projectId: "507f1f77bcf86cd799439001",
+      status: "IN_PROGRESS",
+      assigneeId: adminUserId,
+    });
+    (prisma.projectMember.findUnique as any).mockResolvedValue({ role: "ADMIN" });
+
+    const req = new Request("http://localhost/api/issues/x", {
+      method: "PATCH",
+      body: JSON.stringify({ status: "IN_REVIEW" }),
+    });
+
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }),
+    });
+
+    expect(res.status).toBe(403);
+    expect(prisma.issue.update).not.toHaveBeenCalled();
   });
 
   it("rejects assigning an issue to an admin", async () => {
