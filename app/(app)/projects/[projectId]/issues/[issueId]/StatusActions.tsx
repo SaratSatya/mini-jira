@@ -2,10 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
 
 type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
-
-type HoveredAction = "complete" | "done" | "delete" | null;
 
 interface Props {
   issueId: string;
@@ -27,18 +26,12 @@ export default function StatusActions({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredAction, setHoveredAction] = useState<HoveredAction>(null);
 
   const isAssignee = assigneeId === currentUserId;
   const isAdmin = currentUserRole === "ADMIN";
 
-  // "Mark as Complete" — shown for assignee, and also for ADMIN on IN_PROGRESS issues
-  const showMarkComplete = status === "IN_PROGRESS" && (isAssignee || isAdmin);
-
-  // "Mark as Done" — shown only to admin when status is IN_REVIEW
+  const showMarkComplete = status === "IN_PROGRESS" && isAssignee && !isAdmin;
   const showMarkDone = isAdmin && status === "IN_REVIEW";
-
-  // "Delete Issue" — shown only to admin when status is DONE
   const showDelete = isAdmin && status === "DONE";
 
   async function handleStatusChange(newStatus: Status) {
@@ -87,36 +80,24 @@ export default function StatusActions({
   return (
     <div className="mt-6 flex flex-col gap-2">
       {showMarkComplete && (
-        <button
-          onClick={() => handleStatusChange("IN_REVIEW")}
-          disabled={loading}
-          className="border rounded px-4 py-2 font-medium text-white bg-green-700 hover:bg-green-600 disabled:opacity-50 transition-colors"
-        >
+        <Button onClick={() => handleStatusChange("IN_REVIEW")} disabled={loading} variant="primary">
           {loading ? "Updating..." : "✅ Mark as Complete"}
-        </button>
+        </Button>
       )}
 
       {showMarkDone && (
-        <button
-          onClick={() => handleStatusChange("DONE")}
-          disabled={loading}
-          className="border rounded px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-600 disabled:opacity-50 transition-colors"
-        >
+        <Button onClick={() => handleStatusChange("DONE")} disabled={loading} variant="primary">
           {loading ? "Updating..." : "🏁 Mark as Done"}
-        </button>
+        </Button>
       )}
 
       {showDelete && (
-        <button
-          onClick={handleDelete}
-          disabled={loading}
-          className="border rounded px-4 py-2 font-medium text-white bg-red-700 hover:bg-red-600 disabled:opacity-50 transition-colors"
-        >
+        <Button onClick={handleDelete} disabled={loading} variant="danger">
           {loading ? "Deleting..." : "🗑️ Delete Issue"}
-        </button>
+        </Button>
       )}
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }

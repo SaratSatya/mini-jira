@@ -52,24 +52,31 @@ export default async function IssueDetailPage({
 
   const currentUserRole = membership?.role ?? "MEMBER";
 
-  const memberships = await prisma.projectMember.findMany({
-    where: {
-      projectId: issue.projectId,
-      role: "MEMBER",
-    },
-    select: { userId: true },
-  });
-
-  const users = await prisma.user.findMany({
-    where: { id: { in: memberships.map((m) => m.userId) } },
-    select: { id: true, name: true, email: true },
-  });
-
-  const members = users.map((u) => ({
-    userId: u.id,
-    name: u.name,
-    email: u.email,
-  }));
+  const members =
+    currentUserRole === "ADMIN"
+      ? (
+          await prisma.user.findMany({
+            where: {
+              id: {
+                in: (
+                  await prisma.projectMember.findMany({
+                    where: {
+                      projectId: issue.projectId,
+                      role: "MEMBER",
+                    },
+                    select: { userId: true },
+                  })
+                ).map((m) => m.userId),
+              },
+            },
+            select: { id: true, name: true, email: true },
+          })
+        ).map((u) => ({
+          userId: u.id,
+          name: u.name,
+          email: u.email,
+        }))
+      : [];
 
   const commentPage = Math.max(Number.parseInt(page ?? "1", 10) || 1, 1);
 
@@ -97,7 +104,7 @@ export default async function IssueDetailPage({
     <main className="p-6 max-w-3xl mx-auto pb-16">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{issue.title}</h1>
-        <Link className="underline" href={`/projects/${projectId}/issues`}>
+        <Link className="app-link-btn" href={`/projects/${projectId}/issues`}>
           Back
         </Link>
       </div>
@@ -108,7 +115,7 @@ export default async function IssueDetailPage({
       </p>
 
       {issue.description ? (
-        <div className="mt-4 border rounded p-3">
+        <div className="mt-4 app-card p-4">
           <p className="font-medium">Description</p>
           <p className="mt-2 text-sm opacity-90 whitespace-pre-wrap">{issue.description}</p>
         </div>
@@ -144,7 +151,7 @@ export default async function IssueDetailPage({
             <p className="text-sm opacity-70">No comments yet.</p>
           ) : (
             comments.map((c) => (
-              <div key={c.id} className="border rounded p-3">
+              <div key={c.id} className="app-card p-3">
                 <p className="text-sm opacity-70">
                   {c.author.name ?? c.author.email} • {new Date(c.createdAt).toLocaleString()}
                 </p>
@@ -163,7 +170,7 @@ export default async function IssueDetailPage({
             <div className="flex gap-2">
               {currentPage > 1 ? (
                 <Link
-                  className="border rounded px-3 py-1"
+                  className="app-link-btn"
                   href={`/projects/${projectId}/issues/${issueId}?page=${currentPage - 1}`}
                 >
                   Previous
@@ -171,7 +178,7 @@ export default async function IssueDetailPage({
               ) : null}
               {currentPage < totalPages ? (
                 <Link
-                  className="border rounded px-3 py-1"
+                  className="app-link-btn"
                   href={`/projects/${projectId}/issues/${issueId}?page=${currentPage + 1}`}
                 >
                   Next

@@ -43,6 +43,15 @@ export async function PATCH(
 
   if (!issue) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId: issue.projectId, userId } },
+    select: { role: true },
+  });
+
+  if (!membership) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const current = await prisma.issue.findUnique({
     where: { id: issueId },
     select: { sprintId: true },
@@ -52,6 +61,13 @@ export async function PATCH(
 
   // ── REMOVING from sprint ──────────────────────────────────────────────────
   if (sprintId === null) {
+    if (membership.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Only ADMIN can remove issues from a sprint" },
+        { status: 403 }
+      );
+    }
+
     if (current?.sprintId) {
       const currentSprint = await prisma.sprint.findFirst({
         where: { id: current.sprintId, projectId: issue.projectId },
@@ -71,6 +87,13 @@ export async function PATCH(
   if (sprintId !== null) {
     if (!objectId.safeParse(sprintId).success) {
       return NextResponse.json({ error: "Invalid sprintId" }, { status: 400 });
+    }
+
+    if (membership.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Only ADMIN can add issues to a sprint" },
+        { status: 403 }
+      );
     }
 
     const sprint = await prisma.sprint.findFirst({

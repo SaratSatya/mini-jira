@@ -63,14 +63,14 @@ export default async function ProjectIssuesPage({
         <div className="flex gap-2">
           {currentUserRole === "ADMIN" ? (
             <Link
-              className="border rounded px-3 py-1"
+              className="app-link-btn"
               href={`/projects/${project.id}/issues/new`}
             >
               Create Issue
             </Link>
           ) : null}
           <Link
-            className="border rounded px-3 py-1"
+            className="app-link-btn"
             href={`/projects/${project.id}`}
           >
             Back

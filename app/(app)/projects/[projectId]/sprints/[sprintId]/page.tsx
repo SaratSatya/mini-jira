@@ -85,7 +85,7 @@ export default async function SprintDetailPage({
           </p>
         </div>
 
-        <Link className="underline" href={`/projects/${projectId}/sprints`}>
+        <Link className="app-link-btn" href={`/projects/${projectId}/sprints`}>
           Back
         </Link>
         <SprintStatusActions
@@ -98,7 +98,7 @@ export default async function SprintDetailPage({
       </div>
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="border rounded p-3">
+        <div className="app-card p-4">
           <p className="font-medium">Sprint Metrics (Story Points)</p>
           <div className="mt-2 text-sm space-y-1">
             <p>TODO: {spByStatus.TODO}</p>
@@ -109,7 +109,7 @@ export default async function SprintDetailPage({
           </div>
         </div>
 
-        <AddIssueToSprint sprintId={sprint.id} backlogIssues={backlogIssues} disabled={sprint.status !== 'ACTIVE'} />
+        <AddIssueToSprint sprintId={sprint.id} backlogIssues={backlogIssues} disabled={sprint.status !== 'ACTIVE' || membership.role !== 'ADMIN'} isAdmin={membership.role === 'ADMIN'} />
       </div>
 
       <div className="mt-6 border rounded p-3">
@@ -120,7 +120,7 @@ export default async function SprintDetailPage({
             <p className="text-sm opacity-70">No issues added yet.</p>
           ) : (
             sprintIssues.map((i) => (
-              <div key={i.id} className="border rounded p-2 flex items-center justify-between gap-3">
+              <div key={i.id} className="app-card p-3 flex items-center justify-between gap-3">
                 <div>
                   <p className="font-medium">{i.title}</p>
                   <p className="text-xs opacity-70 mt-1">
@@ -130,10 +130,12 @@ export default async function SprintDetailPage({
                 </div>
 
                 <div className="flex gap-2 items-center">
-                  <Link className="underline text-sm" href={`/projects/${projectId}/issues/${i.id}`}>
+                  <Link className="app-link-btn text-sm py-1" href={`/projects/${projectId}/issues/${i.id}`}>
                     Open
                   </Link>
-                  <RemoveFromSprintButton issueId={i.id} disabled={sprint.status !== 'ACTIVE'} />
+                  {membership.role === 'ADMIN' ? (
+                    <RemoveFromSprintButton issueId={i.id} disabled={sprint.status !== 'ACTIVE'} />
+                  ) : null}
                 </div>
               </div>
             ))
