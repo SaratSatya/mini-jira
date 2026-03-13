@@ -108,7 +108,23 @@ export async function PATCH(
 
   // ── Status change: role-gated ─────────────────────────────────────────────
   if (status !== undefined) {
-    // MEMBER can only move their own assigned issue ��� IN_REVIEW
+    // IN_PROGRESS -> IN_REVIEW can only be done by the current assignee
+    if (status === "IN_REVIEW") {
+      if (issue.status !== "IN_PROGRESS") {
+        return NextResponse.json(
+          { error: "Issue must be IN_PROGRESS before moving to IN_REVIEW" },
+          { status: 403 }
+        );
+      }
+      if (issue.assigneeId !== userId) {
+        return NextResponse.json(
+          { error: "Only the assigned user can mark this issue as IN_REVIEW" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // MEMBER can only move their own assigned issue -> IN_REVIEW
     if (!isAdmin) {
       if (issue.assigneeId !== userId) {
         return NextResponse.json(
@@ -124,7 +140,7 @@ export async function PATCH(
       }
     }
 
-    // ADMIN can only move IN_REVIEW → DONE
+    // ADMIN can only move IN_REVIEW -> DONE
     if (isAdmin && status === "DONE" && issue.status !== "IN_REVIEW") {
       return NextResponse.json(
         { error: "Admin can only mark IN_REVIEW issues as DONE" },

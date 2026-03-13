@@ -11,10 +11,14 @@ vi.mock("@/lib/prisma", () => ({
       findFirst: vi.fn(),
       update: vi.fn(),
     },
-    activity:{
-      create:vi.fn(),
-    }
+    projectMember: {
+      findUnique: vi.fn(),
+    },
   },
+}));
+
+vi.mock("@/lib/activity", () => ({
+  logActivity: vi.fn(),
 }));
 
 const { getServerSession } = await import("next-auth");
@@ -33,12 +37,16 @@ describe("PATCH /api/issues/[issueId]", () => {
       body: JSON.stringify({ status: "DONE" }),
     });
 
-    const res = await PATCH(req as any, { params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }) });
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }),
+    });
     expect(res.status).toBe(401);
   });
 
   it("returns 404 if issue not found", async () => {
-    (getServerSession as any).mockResolvedValue({ user: { id: "507f1f77bcf86cd799439012" } });
+    (getServerSession as any).mockResolvedValue({
+      user: { id: "507f1f77bcf86cd799439012" },
+    });
     (prisma.issue.findFirst as any).mockResolvedValue(null);
 
     const req = new Request("http://localhost/api/issues/x", {
@@ -46,28 +54,37 @@ describe("PATCH /api/issues/[issueId]", () => {
       body: JSON.stringify({ status: "DONE" }),
     });
 
-    const res = await PATCH(req as any, { params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }) });
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }),
+    });
     expect(res.status).toBe(404);
   });
 
-  it("updates status when authorized + member", async () => {
-    (getServerSession as any).mockResolvedValue({ user: { id: "507f1f77bcf86cd799439012" } });
-    (prisma.issue.findFirst as any).mockResolvedValue({ id: "507f1f77bcf86cd799439011", projectId: "p1", status: "TODO" });
+  it("allows only assignee to mark IN_PROGRESS as IN_REVIEW", async () => {
+    const userId = "507f1f77bcf86cd799439012";
+    (getServerSession as any).mockResolvedValue({ user: { id: userId } });
+    (prisma.issue.findFirst as any).mockResolvedValue({
+      id: "507f1f77bcf86cd799439011",
+      projectId: "507f1f77bcf86cd799439001",
+      status: "IN_PROGRESS",
+      assigneeId: userId,
+    });
+    (prisma.projectMember.findUnique as any).mockResolvedValue({ role: "MEMBER" });
     (prisma.issue.update as any).mockResolvedValue({});
-    (prisma.activity.create as any).mockResolvedValue({});
-
 
     const req = new Request("http://localhost/api/issues/x", {
       method: "PATCH",
-      body: JSON.stringify({ status: "DONE" }),
+      body: JSON.stringify({ status: "IN_REVIEW" }),
     });
 
-    const res = await PATCH(req as any, { params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }) });
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ issueId: "507f1f77bcf86cd799439011" }),
+    });
     expect(res.status).toBe(200);
 
     expect(prisma.issue.update).toHaveBeenCalledWith({
       where: { id: "507f1f77bcf86cd799439011" },
-      data: { status: "DONE" },
+      data: { status: "IN_REVIEW" },
     });
   });
 });
