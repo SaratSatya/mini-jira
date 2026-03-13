@@ -109,7 +109,7 @@ export default async function SprintDetailPage({
           </div>
         </div>
 
-        <AddIssueToSprint sprintId={sprint.id} backlogIssues={backlogIssues} disabled={sprint.status !== 'ACTIVE'} />
+        <AddIssueToSprint sprintId={sprint.id} backlogIssues={backlogIssues} disabled={sprint.status !== 'ACTIVE' || membership.role !== 'ADMIN'} isAdmin={membership.role === 'ADMIN'} />
       </div>
 
       <div className="mt-6 border rounded p-3">
