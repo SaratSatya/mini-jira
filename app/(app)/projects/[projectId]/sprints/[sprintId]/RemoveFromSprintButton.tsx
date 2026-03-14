@@ -2,8 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
 
-export default function RemoveFromSprintButton({ issueId,disabled }: { issueId: string,disabled?:boolean}) {
+export default function RemoveFromSprintButton({
+  issueId,
+  disabled,
+}: {
+  issueId: string;
+  disabled?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -25,8 +32,8 @@ export default function RemoveFromSprintButton({ issueId,disabled }: { issueId: 
   }
 
   return (
-    <button className="border rounded px-3 py-1 text-sm" onClick={remove} disabled={loading}>
+    <Button variant="ghost" className="text-sm py-1" onClick={remove} disabled={loading || disabled}>
       {loading ? "Removing..." : "Remove"}
-    </button>
+    </Button>
   );
 }

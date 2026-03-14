@@ -7,11 +7,13 @@ import { Button } from "@/app/components/ui/button";
 export default function AddIssueToSprint({
   sprintId,
   backlogIssues,
-  disabled
+  disabled,
+  isAdmin,
 }: {
   sprintId: string;
   backlogIssues: { id: string; title: string }[];
-  disabled?:boolean
+  disabled?: boolean;
+  isAdmin: boolean;
 }) {
   const router = useRouter();
   const [issueId, setIssueId] = useState(backlogIssues[0]?.id ?? "");
@@ -37,15 +39,17 @@ export default function AddIssueToSprint({
   }
 
   return (
-    <div className="border rounded p-3">
+    <div className="app-card p-4">
       <p className="font-medium">Add issue to sprint</p>
 
-      {backlogIssues.length === 0 ? (
+      {!isAdmin ? (
+        <p className="text-sm opacity-70 mt-2">Only admins can add issues to a sprint.</p>
+      ) : backlogIssues.length === 0 ? (
         <p className="text-sm opacity-70 mt-2">No backlog issues available.</p>
       ) : (
         <div className="flex gap-2 mt-2">
           <select
-            className="border rounded p-2 flex-1"
+            className="app-select flex-1"
             value={issueId}
             onChange={(e) => setIssueId(e.target.value)}
             disabled={loading || disabled}
@@ -57,7 +61,7 @@ export default function AddIssueToSprint({
             ))}
           </select>
 
-          <Button className="border rounded px-3 py-2" onClick={add} disabled={loading || disabled}>
+          <Button variant="primary" onClick={add} disabled={loading || disabled}>
             {loading ? "Adding..." : "Add"}
           </Button>
         </div>

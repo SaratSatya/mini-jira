@@ -56,9 +56,9 @@ export default function IssueCard({
   }
 
   return (
-    <div className="border rounded p-3">
+    <div className="app-card p-3">
       <Link
-        className="font-medium underline"
+        className="font-medium hover:underline"
         href={`/projects/${issue.projectId}/issues/${issue.id}`}
       >
         {issue.title}

@@ -68,7 +68,7 @@ export default function KanbanBoard({
   const filteredIssues = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    let list = issues.filter((i) => {
+    const list = issues.filter((i) => {
       // Members only see TODO (for everyone) and their own IN_PROGRESS
       if (!isAdmin) {
         if (i.status === "IN_REVIEW" || i.status === "DONE") return false;
@@ -125,7 +125,7 @@ export default function KanbanBoard({
         assignees={assignees}
       />
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {columns.map((col) => (
           <KanbanColumn
             key={col.key}
@@ -159,7 +159,7 @@ function KanbanColumn({
 }) {
   return (
     <Card>
-      <section className="border rounded p-3 min-h-[160px]" data-col={id}>
+      <section className="p-3 min-h-[200px]" data-col={id}>
         <h2 className="font-medium">{title}</h2>
         <div className="mt-3 space-y-3">
           {issues.length === 0 ? (
