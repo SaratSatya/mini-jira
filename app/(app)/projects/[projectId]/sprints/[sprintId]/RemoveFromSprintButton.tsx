@@ -32,7 +32,7 @@ export default function RemoveFromSprintButton({
   }
 
   return (
-    <Button variant="ghost" className="text-sm py-1" onClick={remove} disabled={loading || disabled}>
+    <button className="border rounded px-3 py-1 text-sm disabled:opacity-50" onClick={remove} disabled={loading || disabled}>
       {loading ? "Removing..." : "Remove"}
     </Button>
   );
